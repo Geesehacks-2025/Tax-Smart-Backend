@@ -2,14 +2,13 @@ class UserProfilesController < ApplicationController
     # POST /user_profiles
   def create
     # Create a new user profile from the parameters passed in the request
-    @user_profile = UserProfile.new(user_profile_params)
+    user_profile = UserProfile.find_or_initialize_by(email: user_profile_params[:email])
 
-    if @user_profile.save
-      # If saved successfully, respond with the created user profile as JSON
-      render json: @user_profile, status: :created
+    # Update the attributes of the record
+    if user_profile.update(user_profile_params)
+      render json: { message: "User profile successfully created/updated.", user_profile: user_profile }, status: :ok
     else
-      # If not saved, respond with errors
-      render json: @user_profile.errors, status: :unprocessable_entity
+      render json: { errors: user_profile.errors.full_messages }, status: :unprocessable_entity
     end
   end
 
