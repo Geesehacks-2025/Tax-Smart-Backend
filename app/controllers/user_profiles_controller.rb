@@ -12,6 +12,19 @@ class UserProfilesController < ApplicationController
     end
   end
 
+  def show
+    # Find the user profile with the hardcoded email
+    user_profile = UserProfile.find_by(email: 'john.doe@example.com')
+
+    if user_profile
+      # If the profile exists, return it as JSON
+      render json: user_profile, status: :ok
+    else
+      # If the profile doesn't exist, return a 404 not found error
+      render json: { error: 'User profile not found' }, status: :not_found
+    end
+  end
+
   private
 
   # Only allow trusted parameters through
