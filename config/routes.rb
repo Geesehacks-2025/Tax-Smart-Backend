@@ -11,4 +11,6 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   # root "posts#index"
+  # Define route for creating user profile
+  resources :user_profiles, only: [:create]
 end
