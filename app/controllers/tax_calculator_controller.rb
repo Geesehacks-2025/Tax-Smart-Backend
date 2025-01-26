@@ -1,4 +1,21 @@
 class TaxCalculatorController < ApplicationController
+    def initialize
+        @client = OpenAI::Client.new
+    end
+    
+    def askquestion(question)
+        response = @client.chat(
+            parameters: {
+            model: 'gpt-3.5-turbo', # You can use 'gpt-3.5-turbo' for GPT-3.5
+            messages: [{ role: 'user', content: question }],
+            temperature: 0.7
+            }
+        )
+        response.dig('choices', 0, 'message', 'content').strip
+        rescue StandardError => e
+            Rails.logger.error("OpenAI API error: #{e.message}")
+            'Sorry, I am having trouble responding at the moment.'
+    end
     def calculate
         required_params = [:employment_income, :rrsp_fhsa_deductions, :capital_gains, :dividend_income, :other_income]
         missing_params = required_params.select { |param| params[param].blank? }
@@ -97,12 +114,27 @@ class TaxCalculatorController < ApplicationController
         end
 
         total_tax = federal_tax + provincial_tax
+        # ai_response = AiTaxSuggestionService.get_tax_suggestion(params)
+        params_as_string = format_params_for_chatbot(params)
+        ai_response = self.askquestion(params_as_string)
     
         # Send the response
         render json: {
           total_tax: total_tax,
           federal_tax: federal_tax,
           provincial_tax: provincial_tax
+        #   ai_response: ai_response
         }
+    end
+    def format_params_for_chatbot(params)
+        # Create a more readable string for the chatbot
+        formatted_string = "Tax information: "
+        formatted_string += "Employment income: #{params[:employment_income]}, "
+        formatted_string += "RRSP/FHSA deductions: #{params[:rrsp_fhsa_deductions]}, "
+        formatted_string += "Capital gains: #{params[:capital_gains]}, "
+        formatted_string += "Dividend income: #{params[:dividend_income]}, "
+        formatted_string += "Other income: #{params[:other_income]}"
+        formatted_string += "help give some tax advice(less than 50 words)"
+        formatted_string
     end
 end
