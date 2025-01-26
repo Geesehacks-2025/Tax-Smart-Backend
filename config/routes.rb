@@ -14,4 +14,5 @@ Rails.application.routes.draw do
   # Define route for creating user profile
   resources :user_profiles, only: [:create]
   get 'user_profiles/:email', to: 'user_profiles#show'
+  post 'tax_calculator', to: 'tax_calculator#calculate'
 end
