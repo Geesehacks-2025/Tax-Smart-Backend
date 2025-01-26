@@ -2,7 +2,7 @@
 
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
     allow do
-        origins 'https://t.bananotes.com/' # Replace with your Next.js frontend URL
+        origins 'https://t.bananotes.com/', 'http://localhost:3000' # Replace with your Next.js frontend URL
   
         resource '*', # Allow all resources
             headers: :any, # Allow all headers
