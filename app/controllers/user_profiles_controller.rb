@@ -1,4 +1,5 @@
 class UserProfilesController < ApplicationController
+  skip_forgery_protection
     # POST /user_profiles
   def create
     # Create a new user profile from the parameters passed in the request
