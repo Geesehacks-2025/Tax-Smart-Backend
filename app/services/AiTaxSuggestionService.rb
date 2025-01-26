@@ -8,7 +8,7 @@ class AiTaxSuggestionService
   
     def self.get_tax_suggestion(user_input)
         client = OpenAI::Client.new(
-            access_token: "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",
+            # access_token: 
             log_errors: true # Highly recommended in development, so you can see what errors OpenAI is returning. Not recommended in production because it could leak private data to your logs.
         )
         response = client.chat(

@@ -1,20 +1,41 @@
 class TaxCalculatorController < ApplicationController
+    skip_forgery_protection
     def initialize
-        @client = OpenAI::Client.new
+        # @client = OpenAI::Client.new
+        @client = Anthropic::Client.new(access_token: "   ")
     end
     
     def askquestion(question)
-        response = @client.chat(
-            parameters: {
-            model: 'gpt-3.5-turbo', # You can use 'gpt-3.5-turbo' for GPT-3.5
-            messages: [{ role: 'user', content: question }],
-            temperature: 0.7
-            }
-        )
-        response.dig('choices', 0, 'message', 'content').strip
+        # response = @client.chat(
+        #     parameters: {
+        #     model: 'gpt-3.5-turbo', # You can use 'gpt-3.5-turbo' for GPT-3.5
+        #     messages: [{ role: 'user', content: question }],
+        #     temperature: 0.7
+        #     }
+        # )
+        # response.dig('choices', 0, 'message', 'content').strip
+        # rescue StandardError => e
+        #     Rails.logger.error("OpenAI API error: #{e.message}")
+        #     'Sorry, I am having trouble responding at the moment.'
+        begin
+            response = @client.messages(
+                parameters: {
+                    model: "claude-3-haiku-20240307", # claude model
+                    system: "Respond only in Spanish.",
+                    messages: [
+                        {"role": "user", "content": "Hello, Claude! " + question + " Answer in the provided JSON format. Only include JSON."},
+                        { role: "assistant", content: '[{"name": "Mountain Name", "height": "height in km"}]' }
+                    ],
+                    max_tokens: 1000
+                }
+            )
+            # Parse the response content
+            response_content = response.dig('choices', 0, 'message', 'content').strip
+            return response_content
         rescue StandardError => e
-            Rails.logger.error("OpenAI API error: #{e.message}")
-            'Sorry, I am having trouble responding at the moment.'
+            Rails.logger.error("Claude API error: #{e.message}")
+            return 'Sorry, I am having trouble responding at the moment.'
+        end
     end
     def calculate
         required_params = [:employment_income, :rrsp_fhsa_deductions, :capital_gains, :dividend_income, :other_income]
@@ -113,10 +134,12 @@ class TaxCalculatorController < ApplicationController
             end
         end
 
+        federal_tax = [0, federal_tax].max
+        provincial_tax = [0, provincial_tax].max
         total_tax = federal_tax + provincial_tax
         # ai_response = AiTaxSuggestionService.get_tax_suggestion(params)
-        params_as_string = format_params_for_chatbot(params)
-        ai_response = self.askquestion(params_as_string)
+        # params_as_string = format_params_for_chatbot(params)
+        # ai_response = self.askquestion(params_as_string)
     
         # Send the response
         render json: {
